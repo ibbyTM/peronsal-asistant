@@ -438,9 +438,88 @@ body {
 .modal-foot { display:flex; gap:8px; margin-top:20px; }
 .modal-foot .btn { flex:1; padding:10px; }
 
+/* ── Bottom nav (mobile) ── */
+.bottom-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+  z-index: 50;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.bnav-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 10px; font-weight: 500;
+  padding: 6px 12px; border-radius: 10px;
+  transition: all var(--transition); min-width: 56px;
+}
+.bnav-btn svg { transition: all var(--transition); }
+.bnav-btn.active { color: var(--agent-color, #7c6ef5); }
+.bnav-btn.active svg { stroke: var(--agent-color, #7c6ef5); }
+
+/* agent sheet */
+.agent-sheet-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+  z-index: 150; align-items: flex-end;
+}
+.agent-sheet-overlay.open { display: flex; }
+
+.agent-sheet {
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  padding: 12px 16px calc(20px + env(safe-area-inset-bottom));
+  width: 100%; animation: sheetUp .2s ease;
+}
+@keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+.sheet-handle {
+  width: 36px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 0 auto 16px;
+}
+.sheet-title { font-size: 13px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 12px; }
+
+.sheet-agent-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 12px; border-radius: 12px; border: none;
+  background: none; cursor: pointer; color: var(--text);
+  font-size: 15px; font-weight: 500; width: 100%;
+  transition: background var(--transition);
+}
+.sheet-agent-btn:hover, .sheet-agent-btn.active { background: var(--surface2); }
+.sheet-agent-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.sheet-agent-em { font-size: 20px; }
+.sheet-agent-info { flex: 1; text-align: left; }
+.sheet-agent-name { font-weight: 600; }
+.sheet-agent-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+
+/* mobile topbar agent pill */
+.mobile-agent-pill {
+  display: none; align-items: center; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px 5px 8px;
+  cursor: pointer; transition: background var(--transition);
+}
+.mobile-agent-pill:hover { background: var(--surface3); }
+.mobile-agent-pill-dot { width: 8px; height: 8px; border-radius: 50%; }
+.mobile-agent-pill-name { font-size: 13px; font-weight: 600; }
+
 @media(max-width:700px) {
-  .sidebar { display:none; }
-  .kpi-grid { grid-template-columns:1fr 1fr; }
+  .sidebar { display: none; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .bottom-nav { display: flex; }
+  .mobile-agent-pill { display: flex; }
+  .topbar-left .agent-avatar,
+  .topbar-left > div:last-child { display: none; }
+  .content { padding-bottom: 64px; }
+  #chat-messages { padding: 16px 14px 8px; }
+  .input-wrap { padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); }
+  .dash-scroll { padding: 16px 14px; }
+  .msg { max-width: 88%; }
+  .modal { border-radius: 18px; }
 }
 </style>
 </head>
@@ -485,6 +564,35 @@ body {
   </div>
 </div>
 
+<!-- Mobile agent sheet -->
+<div class="agent-sheet-overlay" id="agent-sheet" onclick="if(event.target===this)closeAgentSheet()">
+  <div class="agent-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Switch Agent</div>
+    <div id="sheet-agent-list"></div>
+  </div>
+</div>
+
+<!-- Bottom nav (mobile) -->
+<nav class="bottom-nav">
+  <button class="bnav-btn active" data-view="chat" onclick="switchView('chat',this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Chat
+  </button>
+  <button class="bnav-btn" data-view="stats" onclick="switchView('stats',this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Stats
+  </button>
+  <button class="bnav-btn" data-view="tasks" onclick="switchView('tasks',this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Tasks
+  </button>
+  <button class="bnav-btn" data-view="rules" onclick="switchView('rules',this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Rules
+  </button>
+</nav>
+
 <!-- Main -->
 <div class="main">
   <div class="topbar">
@@ -493,6 +601,11 @@ body {
       <div>
         <div class="topbar-name" id="topbar-name">Ace</div>
         <div class="topbar-sub" id="topbar-sub">Accountability</div>
+      </div>
+      <div class="mobile-agent-pill" id="mobile-agent-pill" onclick="openAgentSheet()">
+        <div class="mobile-agent-pill-dot" id="mobile-pill-dot"></div>
+        <span class="mobile-agent-pill-name" id="mobile-pill-name">Ace</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
     <div class="topbar-right">
@@ -741,11 +854,16 @@ function switchAgent(id) {
   currentAgent = id;
 
   document.querySelectorAll('.agent-btn').forEach(b => b.classList.toggle('active', b.dataset.id === id));
+  document.querySelectorAll('.sheet-agent-btn').forEach(b => b.classList.toggle('active', b.dataset.id === id));
 
   $('topbar-avatar').textContent = agent.emoji;
   $('topbar-avatar').style.background = `linear-gradient(135deg, ${agent.color}cc, ${agent.color}66)`;
   $('topbar-name').textContent = agent.name;
   $('topbar-sub').textContent = agent.subtitle;
+
+  // mobile pill
+  $('mobile-pill-dot').style.background = agent.color;
+  $('mobile-pill-name').textContent = agent.name;
 
   document.documentElement.style.setProperty('--agent-color', agent.color);
 
@@ -757,16 +875,33 @@ function switchAgent(id) {
     general: `Hey! I'm Kai. What do you need?`
   };
   addMsg('bot', greetings[id] || `Hey! How can I help?`, agent.color, agent.emoji);
-
+  closeAgentSheet();
   switchView('chat', document.querySelector('[data-view="chat"]'));
 }
+
+function openAgentSheet() {
+  const el = $('sheet-agent-list');
+  el.innerHTML = agentList.map(a => `
+    <button class="sheet-agent-btn ${a.id === currentAgent ? 'active' : ''}" data-id="${a.id}" onclick="switchAgent('${a.id}')">
+      <div class="sheet-agent-dot" style="background:${a.color}"></div>
+      <span class="sheet-agent-em">${a.emoji}</span>
+      <div class="sheet-agent-info">
+        <div class="sheet-agent-name">${a.name}</div>
+        <div class="sheet-agent-sub">${a.subtitle}</div>
+      </div>
+    </button>`).join('');
+  $('agent-sheet').classList.add('open');
+}
+
+function closeAgentSheet() { $('agent-sheet').classList.remove('open'); }
 
 // ── Views ──
 function switchView(name, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn, .bnav-btn').forEach(b => b.classList.remove('active'));
   $(`panel-${name}`).classList.add('active');
-  if (btn) btn.classList.add('active');
+  // activate matching buttons in both sidebar and bottom nav
+  document.querySelectorAll(`[data-view="${name}"]`).forEach(b => b.classList.add('active'));
   if (name === 'stats') loadStats();
   if (name === 'tasks') loadTasks();
   if (name === 'rules') loadRules();

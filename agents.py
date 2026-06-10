@@ -92,6 +92,19 @@ Keep responses concise and useful. No filler, no padding."""
 }
 
 
+def build_shared_context(agent_id: str) -> str:
+    """Inject summaries from ALL other agents so every agent knows what was shared elsewhere."""
+    other_summaries = []
+    for aid in AGENTS:
+        if aid == agent_id:
+            continue
+        summary = memory.get_agent_summary(aid)
+        if summary:
+            name = AGENTS[aid]["name"]
+            other_summaries.append(f"[From {name}'s conversations]\n{summary}")
+    return "\n\n".join(other_summaries)
+
+
 def build_trading_context(agent_id: str) -> str:
     if agent_id not in ("trading", "accountability"):
         return ""
@@ -144,11 +157,14 @@ def chat(agent_id: str, user_message: str) -> str:
     context = build_trading_context(agent_id)
 
     agent = AGENTS[agent_id]
+    shared = build_shared_context(agent_id)
     system = agent["system"]
     if context:
         system += f"\n\n[Live context]\n{context}"
     if summary:
-        system += f"\n\n[Conversation memory]\n{summary}"
+        system += f"\n\n[Your conversation memory]\n{summary}"
+    if shared:
+        system += f"\n\n[What the user shared with other agents — use this to know them better]\n{shared}"
 
     resp = client.messages.create(
         model=MODEL, max_tokens=512,
