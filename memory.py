@@ -1,9 +1,19 @@
 import json
 import os
 from datetime import datetime
-from typing import Any
 
 DATA_FILE = os.getenv("DATA_FILE", "data.json")
+REDIS_URL = os.getenv("REDIS_URL")
+REDIS_KEY = "ace:data"
+
+_redis = None
+
+def _get_redis():
+    global _redis
+    if _redis is None and REDIS_URL:
+        import redis
+        _redis = redis.from_url(REDIS_URL, decode_responses=True)
+    return _redis
 
 DEFAULT_DATA = {
     "tasks": [],
@@ -21,18 +31,27 @@ DEFAULT_DATA = {
 }
 
 def load() -> dict:
-    if os.path.exists(DATA_FILE):
+    r = _get_redis()
+    if r:
+        raw = r.get(REDIS_KEY)
+        data = json.loads(raw) if raw else {}
+    elif os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r") as f:
             data = json.load(f)
-        for key, val in DEFAULT_DATA.items():
-            if key not in data:
-                data[key] = val
-        return data
-    return DEFAULT_DATA.copy()
+    else:
+        data = {}
+    for key, val in DEFAULT_DATA.items():
+        if key not in data:
+            data[key] = val
+    return data
 
 def save(data: dict) -> None:
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=2, default=str)
+    r = _get_redis()
+    if r:
+        r.set(REDIS_KEY, json.dumps(data, default=str))
+    else:
+        with open(DATA_FILE, "w") as f:
+            json.dump(data, f, indent=2, default=str)
 
 def add_task(title: str, priority: str = "medium") -> dict:
     data = load()
