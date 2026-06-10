@@ -633,6 +633,17 @@ const $ = id => document.getElementById(id);
 const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
 const strip = s => s.replace(/\[\/?\w[\w\s]*\]/g,'');
 
+function renderMd(s) {
+  return s
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`(.+?)`/g,'<code style="background:var(--surface3);padding:1px 5px;border-radius:4px;font-size:13px">$1</code>')
+    .replace(/^[-•] (.+)/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs, '<ul style="padding-left:18px;margin:4px 0">$1</ul>')
+    .replace(/\n/g,'<br>');
+}
+
 // ── State ──
 let currentAgent = null;
 let agentList = [];
@@ -783,7 +794,7 @@ function addMsg(role, text, color, emoji) {
   div.innerHTML = `
     <div class="msg-av" style="${role==='bot' ? `background:linear-gradient(135deg,${c}cc,${c}55)` : ''}">${role==='bot' ? em : 'Y'}</div>
     <div class="msg-body">
-      <div class="msg-bubble" style="${role==='user' ? `background:${c}` : ''}">${esc(clean)}</div>
+      <div class="msg-bubble" style="${role==='user' ? `background:${c}` : ''}">${role==='bot' ? renderMd(clean) : esc(clean)}</div>
       <div class="msg-meta"><span class="msg-time">${time}</span>${speakBtn}</div>
     </div>`;
   msgsEl.appendChild(div);
