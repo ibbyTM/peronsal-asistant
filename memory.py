@@ -101,7 +101,7 @@ def get_stats() -> dict:
     stats["win_rate"] = round(stats["winning_trades"] / total * 100, 1) if total > 0 else 0.0
     return stats
 
-def set_trading_rules(rules: list[str]) -> None:
+def set_trading_rules(rules: list) -> None:
     data = load()
     data["trading_rules"] = rules
     save(data)
