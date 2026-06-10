@@ -4,520 +4,597 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ace</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-:root {
-  --transition: 0.25s ease;
-}
-
 [data-theme="dark"] {
-  --bg:        #0d0d10;
-  --surface:   #16161d;
-  --surface2:  #1e1e28;
-  --surface3:  #26262f;
-  --border:    #2c2c3a;
-  --text:      #e8e8f0;
-  --text2:     #9090a8;
-  --text3:     #5a5a72;
-  --accent:    #7c6ef5;
-  --accent2:   #4ec9a0;
-  --danger:    #f56e6e;
-  --user-bg:   #7c6ef5;
-  --user-text: #ffffff;
-  --shadow:    0 4px 24px rgba(0,0,0,0.4);
+  --bg:       #0c0c10;
+  --sidebar:  #13131a;
+  --surface:  #18181f;
+  --surface2: #1e1e28;
+  --surface3: #252530;
+  --border:   #2a2a38;
+  --text:     #e8e8f0;
+  --text2:    #8888a0;
+  --text3:    #505068;
+  --shadow:   0 4px 24px rgba(0,0,0,0.5);
 }
 
 [data-theme="light"] {
-  --bg:        #f0f0f5;
-  --surface:   #ffffff;
-  --surface2:  #f5f5fa;
-  --surface3:  #ebebf5;
-  --border:    #e0e0ea;
-  --text:      #1a1a2e;
-  --text2:     #5a5a7a;
-  --text3:     #9090b0;
-  --accent:    #6c5ce7;
-  --accent2:   #00b894;
-  --danger:    #e55353;
-  --user-bg:   #6c5ce7;
-  --user-text: #ffffff;
-  --shadow:    0 4px 24px rgba(0,0,0,0.08);
+  --bg:       #f2f2f7;
+  --sidebar:  #ffffff;
+  --surface:  #ffffff;
+  --surface2: #f5f5fa;
+  --surface3: #ebebf2;
+  --border:   #e0e0ea;
+  --text:     #1a1a2e;
+  --text2:    #60607a;
+  --text3:    #a0a0b8;
+  --shadow:   0 4px 20px rgba(0,0,0,0.07);
 }
+
+:root { --transition: 0.2s ease; }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   height: 100dvh;
   display: flex;
-  flex-direction: column;
   overflow: hidden;
   transition: background var(--transition), color var(--transition);
 }
 
-/* ── Header ── */
-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 20px;
-  height: 60px;
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.sidebar-logo {
+  padding: 20px 16px 12px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-  transition: background var(--transition), border-color var(--transition);
+  gap: 8px;
 }
 
-.header-left { display: flex; align-items: center; gap: 12px; }
+.sidebar-logo span { font-size: 22px; }
 
-.avatar {
-  width: 36px; height: 36px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; font-weight: 700; color: #fff;
-  flex-shrink: 0;
+.sidebar-section {
+  padding: 8px 10px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
 }
 
-.header-info h1 { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
-.status { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--accent2); }
-.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); }
-
-.header-right { display: flex; align-items: center; gap: 6px; }
-
-.nav-tabs { display: flex; gap: 2px; }
-
-.tab-btn {
-  background: none; border: none;
-  color: var(--text2); padding: 6px 12px;
-  border-radius: 8px; cursor: pointer;
-  font-size: 13px; font-weight: 500;
+.agent-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  margin: 1px 6px;
+  border-radius: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 14px;
+  font-weight: 500;
   transition: all var(--transition);
+  text-align: left;
+  width: calc(100% - 12px);
 }
-.tab-btn:hover { background: var(--surface2); color: var(--text); }
-.tab-btn.active { background: var(--accent); color: #fff; }
 
-.icon-btn {
-  width: 34px; height: 34px;
-  background: none; border: 1px solid var(--border);
-  border-radius: 8px; cursor: pointer; color: var(--text2);
-  display: flex; align-items: center; justify-content: center;
+.agent-btn:hover { background: var(--surface2); color: var(--text); }
+.agent-btn.active { background: var(--surface3); color: var(--text); font-weight: 600; }
+
+.agent-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+
+.agent-emoji { font-size: 16px; }
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 10px 12px;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  margin: 1px 6px;
+  border-radius: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 14px;
+  font-weight: 500;
   transition: all var(--transition);
-}
-.icon-btn:hover { background: var(--surface2); color: var(--text); }
-
-/* ── Main ── */
-main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-.panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
-.panel.active { display: flex; }
-
-/* ── Messages ── */
-#chat-messages {
-  flex: 1; overflow-y: auto; padding: 24px 20px;
-  display: flex; flex-direction: column; gap: 20px;
+  text-align: left;
+  width: calc(100% - 12px);
 }
 
-#chat-messages::-webkit-scrollbar { width: 3px; }
-#chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.nav-btn:hover { background: var(--surface2); color: var(--text); }
+.nav-btn.active { background: var(--surface3); color: var(--text); font-weight: 600; }
+.nav-btn svg { flex-shrink: 0; }
 
-.msg { display: flex; gap: 10px; max-width: 76%; animation: msgIn 0.2s ease; }
-.msg.user { align-self: flex-end; flex-direction: row-reverse; }
-.msg.ace  { align-self: flex-start; }
-
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.msg-avatar {
-  width: 28px; height: 28px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
-}
-
-.msg.ace  .msg-avatar { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
-.msg.user .msg-avatar { background: var(--surface3); color: var(--text2); }
-
-.msg-body { display: flex; flex-direction: column; gap: 4px; }
-
-.msg-bubble {
-  padding: 10px 14px; border-radius: 14px;
-  font-size: 14px; line-height: 1.55;
-  white-space: pre-wrap; word-break: break-word;
-  transition: background var(--transition);
-}
-
-.msg.ace  .msg-bubble { background: var(--surface); border-bottom-left-radius: 4px; color: var(--text); }
-.msg.user .msg-bubble { background: var(--user-bg); border-bottom-right-radius: 4px; color: var(--user-text); }
-
-.msg-time { font-size: 10px; color: var(--text3); }
-.msg.user .msg-time { text-align: right; }
-
-/* speak btn on ace messages */
-.speak-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--text3); padding: 2px 4px; border-radius: 4px;
-  font-size: 12px; transition: color var(--transition);
-  align-self: flex-start;
-}
-.speak-btn:hover { color: var(--accent2); }
-
-/* typing */
-.typing-bubble {
-  display: flex; align-items: center; gap: 4px;
-  padding: 12px 16px;
-  background: var(--surface); border-radius: 14px; border-bottom-left-radius: 4px;
-  width: fit-content;
-}
-.typing-bubble span {
-  width: 6px; height: 6px; border-radius: 50%; background: var(--text3);
-  animation: bounce 1.2s infinite;
-}
-.typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
-.typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes bounce {
-  0%,60%,100% { transform: translateY(0); }
-  30%          { transform: translateY(-5px); }
-}
-
-/* ── Input area ── */
-.input-wrap {
-  padding: 12px 16px 16px;
-  background: var(--surface);
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 12px 10px;
   border-top: 1px solid var(--border);
-  flex-shrink: 0;
-  transition: background var(--transition), border-color var(--transition);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.input-row {
-  display: flex; gap: 8px; align-items: flex-end;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 8px 8px 8px 14px;
-  transition: border-color var(--transition), background var(--transition);
-}
-.input-row:focus-within { border-color: var(--accent); }
-
-#msg-input {
-  flex: 1; background: none; border: none; outline: none;
-  color: var(--text); font-size: 14px; resize: none;
-  max-height: 120px; font-family: inherit; line-height: 1.45;
-  padding: 2px 0;
-}
-#msg-input::placeholder { color: var(--text3); }
-
-.input-btns { display: flex; gap: 4px; align-items: flex-end; }
-
-.round-btn {
-  width: 34px; height: 34px; border-radius: 10px; border: none;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all var(--transition); flex-shrink: 0;
-}
-
-#mic-btn { background: var(--surface3); color: var(--text2); }
-#mic-btn:hover { background: var(--accent); color: #fff; }
-#mic-btn.listening { background: var(--danger); color: #fff; animation: pulse 1s infinite; }
-
-#send-btn { background: var(--accent); color: #fff; }
-#send-btn:hover { opacity: 0.85; }
-#send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-@keyframes pulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(245,110,110,0.4); }
-  50%      { box-shadow: 0 0 0 8px rgba(245,110,110,0); }
-}
-
-.voice-bar {
-  display: none; align-items: center; gap: 8px;
-  padding: 8px 0 0; font-size: 12px; color: var(--danger);
-}
-.voice-bar.active { display: flex; }
-
-/* ── Panels: stats / tasks / rules ── */
-.panel-scroll { flex: 1; overflow-y: auto; padding: 20px; }
-.panel-scroll::-webkit-scrollbar { width: 3px; }
-.panel-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-.page-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 20px;
-}
-.page-title { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
-
-.card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 16px; margin-bottom: 14px;
-  transition: background var(--transition), border-color var(--transition);
-  box-shadow: var(--shadow);
-}
-.card-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px; font-weight: 600; }
-
-.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-
-.stat-box {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; padding: 16px; text-align: center;
-  box-shadow: var(--shadow);
-}
-.stat-val { font-size: 24px; font-weight: 700; color: var(--accent2); letter-spacing: -0.5px; }
-.stat-val.neg { color: var(--danger); }
-.stat-label { font-size: 11px; color: var(--text3); margin-top: 4px; font-weight: 500; }
-
-.trade-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 11px 0; border-bottom: 1px solid var(--border);
+.theme-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 8px;
+  border-radius: 10px;
+  cursor: pointer;
   font-size: 13px;
-}
-.trade-row:last-child { border-bottom: none; }
-.trade-sym { font-weight: 600; }
-.trade-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
-.trade-right { display: flex; align-items: center; gap: 8px; }
-.pnl { font-weight: 600; }
-.pnl.pos { color: var(--accent2); }
-.pnl.neg { color: var(--danger); }
-
-.badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; }
-.badge.ok   { background: rgba(78,201,160,0.12); color: var(--accent2); }
-.badge.broke{ background: rgba(245,110,110,0.12); color: var(--danger); }
-
-.task-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 14px;
-}
-.task-row:last-child { border-bottom: none; }
-
-.check-circle {
-  width: 20px; height: 20px; border-radius: 50%;
-  border: 2px solid var(--border); cursor: pointer;
-  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-  transition: all var(--transition);
-}
-.check-circle:hover { border-color: var(--accent2); background: rgba(78,201,160,0.1); }
-
-.task-text { flex: 1; }
-.pri { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; }
-.pri.high   { background: rgba(245,110,110,0.12); color: var(--danger); }
-.pri.medium { background: rgba(124,110,245,0.12); color: var(--accent); }
-.pri.low    { background: rgba(144,144,168,0.1); color: var(--text3); }
-
-.rule-row {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 14px;
-}
-.rule-row:last-child { border-bottom: none; }
-.rule-num {
-  min-width: 24px; height: 24px; background: var(--accent);
-  border-radius: 6px; display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; margin-top: 1px;
-}
-
-.empty { text-align: center; color: var(--text3); padding: 36px 20px; font-size: 14px; }
-
-/* ── Buttons ── */
-.btn {
-  background: var(--accent); color: #fff; border: none;
-  border-radius: 10px; padding: 9px 16px; cursor: pointer;
-  font-size: 13px; font-weight: 600; transition: opacity var(--transition);
-}
-.btn:hover { opacity: 0.85; }
-.btn.ghost {
-  background: var(--surface2); color: var(--text);
-  border: 1px solid var(--border);
-}
-.btn.ghost:hover { background: var(--surface3); opacity: 1; }
-
-/* ── Modal ── */
-.overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
-  z-index: 100; align-items: center; justify-content: center; padding: 20px;
-}
-.overlay.open { display: flex; }
-
-.modal {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 18px; padding: 28px; width: 100%; max-width: 420px;
-  box-shadow: var(--shadow); animation: modalIn 0.2s ease;
-}
-
-@keyframes modalIn {
-  from { opacity: 0; transform: scale(0.95) translateY(10px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.3px; }
-
-.field { margin-bottom: 14px; }
-.field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; font-weight: 500; }
-.field input, .field select, .field textarea {
-  width: 100%; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 10px 12px; color: var(--text); font-size: 14px;
-  outline: none; font-family: inherit; transition: border-color var(--transition), background var(--transition);
-}
-.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
-.field select option { background: var(--surface2); }
-
-.field-row { display: flex; gap: 10px; }
-.field-row .field { flex: 1; }
-
-.modal-actions { display: flex; gap: 8px; margin-top: 22px; }
-.modal-actions .btn { flex: 1; padding: 10px; }
-
-/* speak toggle */
-.speak-toggle {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 12px; color: var(--text2); cursor: pointer;
-  padding: 4px 8px; border-radius: 8px;
+  color: var(--text2);
   transition: background var(--transition);
 }
-.speak-toggle:hover { background: var(--surface2); }
+.theme-row:hover { background: var(--surface2); }
 
 .toggle-pill {
-  width: 32px; height: 18px; border-radius: 9px;
+  width: 34px; height: 19px; border-radius: 10px;
   background: var(--border); position: relative;
   transition: background var(--transition); flex-shrink: 0;
 }
 .toggle-pill::after {
   content: ''; position: absolute;
-  width: 12px; height: 12px; border-radius: 50%;
+  width: 13px; height: 13px; border-radius: 50%;
   background: #fff; top: 3px; left: 3px;
   transition: transform var(--transition);
 }
-.toggle-pill.on { background: var(--accent2); }
-.toggle-pill.on::after { transform: translateX(14px); }
+.toggle-pill.on { background: var(--accent2, #4ec9a0); }
+.toggle-pill.on::after { transform: translateX(15px); }
 
-@media (max-width: 580px) {
-  .nav-tabs .tab-btn { padding: 6px 9px; font-size: 12px; }
-  .msg { max-width: 90%; }
+/* ── Main content ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── Header ── */
+.topbar {
+  height: 56px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+
+.agent-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; color: #fff;
+}
+
+.topbar-name { font-size: 15px; font-weight: 600; }
+.topbar-sub  { font-size: 12px; color: var(--text3); }
+
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+
+.icon-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: none; border: 1px solid var(--border);
+  cursor: pointer; color: var(--text2);
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+.icon-btn:hover { background: var(--surface2); color: var(--text); }
+
+.voice-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text2); cursor: pointer;
+  padding: 4px 8px; border-radius: 8px;
+  transition: background var(--transition);
+}
+.voice-label:hover { background: var(--surface2); }
+
+/* ── Panels ── */
+.content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.panel.active { display: flex; }
+
+/* ── Chat ── */
+#chat-messages {
+  flex: 1; overflow-y: auto;
+  padding: 24px 24px 8px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+#chat-messages::-webkit-scrollbar { width: 3px; }
+#chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.msg { display: flex; gap: 10px; max-width: 74%; animation: fadeUp 0.18s ease; }
+.msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.msg.bot  { align-self: flex-start; }
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.msg-av {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+}
+.msg.user .msg-av { background: var(--surface3); color: var(--text2); }
+
+.msg-body { display: flex; flex-direction: column; gap: 3px; }
+
+.msg-bubble {
+  padding: 10px 14px; border-radius: 14px;
+  font-size: 14px; line-height: 1.55;
+  white-space: pre-wrap; word-break: break-word;
+}
+.msg.bot  .msg-bubble { background: var(--surface); border-bottom-left-radius: 4px; }
+.msg.user .msg-bubble {
+  border-bottom-right-radius: 4px;
+  color: #fff;
+}
+
+.msg-meta { display: flex; align-items: center; gap: 6px; }
+.msg-time { font-size: 10px; color: var(--text3); }
+.msg.user .msg-meta { justify-content: flex-end; }
+
+.speak-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 12px; padding: 1px 3px;
+  border-radius: 4px; transition: color var(--transition);
+}
+.speak-btn:hover { color: var(--text2); }
+
+/* typing */
+.typing { display:flex; align-items:center; gap:4px; padding:12px 14px; background:var(--surface); border-radius:14px; border-bottom-left-radius:4px; width:fit-content; }
+.typing span { width:5px; height:5px; border-radius:50%; background:var(--text3); animation:bounce 1.2s infinite; }
+.typing span:nth-child(2) { animation-delay:.2s; }
+.typing span:nth-child(3) { animation-delay:.4s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+
+/* input */
+.input-wrap {
+  padding: 10px 16px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.input-box {
+  display: flex; gap: 8px; align-items: flex-end;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 8px 8px 8px 14px;
+  transition: border-color var(--transition), background var(--transition);
+}
+.input-box:focus-within { border-color: var(--agent-color, #7c6ef5); }
+
+#msg-input {
+  flex:1; background:none; border:none; outline:none;
+  color:var(--text); font-size:14px; resize:none;
+  max-height:110px; font-family:inherit; line-height:1.45; padding:2px 0;
+}
+#msg-input::placeholder { color:var(--text3); }
+
+.input-actions { display:flex; gap:4px; align-items:flex-end; }
+
+.round-btn {
+  width:34px; height:34px; border-radius:10px; border:none;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all var(--transition); flex-shrink:0;
+}
+#mic-btn  { background:var(--surface3); color:var(--text2); }
+#mic-btn:hover  { background:var(--agent-color, #7c6ef5); color:#fff; }
+#mic-btn.on     { background:#e55353; color:#fff; animation:pulse 1s infinite; }
+#send-btn { background:var(--agent-color, #7c6ef5); color:#fff; }
+#send-btn:hover { opacity:.85; }
+#send-btn:disabled { opacity:.35; cursor:not-allowed; }
+
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(229,83,83,.4)} 50%{box-shadow:0 0 0 7px rgba(229,83,83,0)} }
+
+.voice-hint { font-size:11px; color:#e55353; padding:6px 0 0; display:none; }
+.voice-hint.on { display:flex; align-items:center; gap:5px; }
+
+/* ── Dashboard / Stats ── */
+.dash-scroll { flex:1; overflow-y:auto; padding:20px 24px; }
+.dash-scroll::-webkit-scrollbar { width:3px; }
+.dash-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+.page-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+.page-title { font-size:20px; font-weight:700; letter-spacing:-.4px; }
+
+.kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+
+.kpi {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; padding:16px; box-shadow:var(--shadow);
+}
+.kpi-val { font-size:22px; font-weight:700; letter-spacing:-.4px; }
+.kpi-val.pos { color:#4ec9a0; }
+.kpi-val.neg { color:#e55353; }
+.kpi-label { font-size:11px; color:var(--text3); margin-top:4px; font-weight:500; text-transform:uppercase; letter-spacing:.4px; }
+
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; padding:18px; margin-bottom:14px;
+  box-shadow:var(--shadow);
+}
+.card-head { font-size:12px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:14px; }
+
+.chart-wrap { position:relative; height:200px; }
+
+.trade-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 0; border-bottom:1px solid var(--border); font-size:13px;
+}
+.trade-row:last-child { border-bottom:none; }
+.t-sym { font-weight:600; }
+.t-sub { font-size:11px; color:var(--text3); margin-top:2px; }
+.t-right { display:flex; align-items:center; gap:8px; }
+.pnl { font-weight:600; }
+.pnl.pos { color:#4ec9a0; }
+.pnl.neg { color:#e55353; }
+.badge { font-size:10px; padding:2px 7px; border-radius:20px; font-weight:600; }
+.badge.ok   { background:rgba(78,201,160,.12); color:#4ec9a0; }
+.badge.broke{ background:rgba(229,83,83,.12); color:#e55353; }
+
+/* ── Tasks ── */
+.task-row {
+  display:flex; align-items:center; gap:12px;
+  padding:11px 0; border-bottom:1px solid var(--border); font-size:14px;
+}
+.task-row:last-child { border-bottom:none; }
+.chk {
+  width:20px; height:20px; border-radius:50%; border:2px solid var(--border);
+  cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  transition:all var(--transition);
+}
+.chk:hover { border-color:#4ec9a0; background:rgba(78,201,160,.1); }
+.task-txt { flex:1; }
+.pri { font-size:10px; padding:2px 7px; border-radius:20px; font-weight:600; }
+.pri.high   { background:rgba(229,83,83,.12); color:#e55353; }
+.pri.medium { background:rgba(124,110,245,.12); color:#7c6ef5; }
+.pri.low    { background:rgba(144,144,168,.1); color:var(--text3); }
+
+/* ── Rules ── */
+.rule-row {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:10px 0; border-bottom:1px solid var(--border); font-size:14px;
+}
+.rule-row:last-child { border-bottom:none; }
+.rule-n {
+  min-width:24px; height:24px; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:#fff; flex-shrink:0; margin-top:1px;
+}
+
+.empty { text-align:center; color:var(--text3); padding:36px; font-size:14px; }
+
+/* ── Buttons ── */
+.btn {
+  background:var(--agent-color, #7c6ef5); color:#fff; border:none;
+  border-radius:10px; padding:9px 16px; cursor:pointer;
+  font-size:13px; font-weight:600; transition:opacity var(--transition);
+}
+.btn:hover { opacity:.85; }
+.btn.ghost { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+.btn.ghost:hover { background:var(--surface3); opacity:1; }
+
+/* ── Modals ── */
+.overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.6); backdrop-filter:blur(6px);
+  z-index:200; align-items:center; justify-content:center; padding:20px;
+}
+.overlay.open { display:flex; }
+
+.modal {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:18px; padding:28px; width:100%; max-width:420px;
+  box-shadow:var(--shadow); animation:modalIn .18s ease;
+}
+@keyframes modalIn { from{opacity:0;transform:scale(.95) translateY(8px)} to{opacity:1;transform:none} }
+.modal h2 { font-size:18px; font-weight:700; margin-bottom:20px; letter-spacing:-.3px; }
+
+.field { margin-bottom:14px; }
+.field label { display:block; font-size:12px; color:var(--text2); margin-bottom:6px; font-weight:500; }
+.field input,.field select,.field textarea {
+  width:100%; background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; padding:10px 12px; color:var(--text); font-size:14px;
+  outline:none; font-family:inherit; transition:border-color var(--transition), background var(--transition);
+}
+.field input:focus,.field select:focus,.field textarea:focus { border-color:var(--agent-color, #7c6ef5); }
+.field select option { background:var(--surface2); }
+.field-row { display:flex; gap:10px; }
+.field-row .field { flex:1; }
+.modal-foot { display:flex; gap:8px; margin-top:20px; }
+.modal-foot .btn { flex:1; padding:10px; }
+
+@media(max-width:700px) {
+  .sidebar { display:none; }
+  .kpi-grid { grid-template-columns:1fr 1fr; }
 }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-left">
-    <div class="avatar">A</div>
-    <div class="header-info">
-      <h1>Ace</h1>
-      <div class="status"><div class="status-dot"></div>Online</div>
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo"><span>✦</span> Ace</div>
+
+  <div class="sidebar-section">Agents</div>
+  <div id="agent-list"></div>
+
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section">Menu</div>
+
+  <button class="nav-btn active" data-view="chat" onclick="switchView('chat', this)">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Chat
+  </button>
+  <button class="nav-btn" data-view="stats" onclick="switchView('stats', this)">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Trading Stats
+  </button>
+  <button class="nav-btn" data-view="tasks" onclick="switchView('tasks', this)">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Tasks
+  </button>
+  <button class="nav-btn" data-view="rules" onclick="switchView('rules', this)">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Rules
+  </button>
+
+  <div class="sidebar-bottom">
+    <div class="theme-row" onclick="toggleTheme()">
+      <span>Dark mode</span>
+      <div class="toggle-pill" id="theme-pill"></div>
+    </div>
+    <div class="theme-row" onclick="toggleSpeak()">
+      <span>Voice replies</span>
+      <div class="toggle-pill" id="speak-pill"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="agent-avatar" id="topbar-avatar"></div>
+      <div>
+        <div class="topbar-name" id="topbar-name">Ace</div>
+        <div class="topbar-sub" id="topbar-sub">Accountability</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" id="clear-btn" title="Clear chat history" onclick="clearHistory()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
     </div>
   </div>
 
-  <div class="nav-tabs">
-    <button class="tab-btn active" data-panel="chat">Chat</button>
-    <button class="tab-btn" data-panel="stats">Stats</button>
-    <button class="tab-btn" data-panel="tasks">Tasks</button>
-    <button class="tab-btn" data-panel="rules">Rules</button>
-  </div>
+  <div class="content">
 
-  <div class="header-right">
-    <label class="speak-toggle" title="Ace speaks back">
-      <span>Voice</span>
-      <div class="toggle-pill" id="speak-toggle-pill"></div>
-    </label>
-    <button class="icon-btn" id="theme-btn" title="Toggle theme">
-      <svg id="theme-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-      </svg>
-    </button>
-  </div>
-</header>
-
-<main>
-
-  <!-- Chat -->
-  <div id="panel-chat" class="panel active">
-    <div id="chat-messages"></div>
-    <div class="input-wrap">
-      <div class="input-row">
-        <textarea id="msg-input" placeholder="Chat with Ace, or type /help…" rows="1"></textarea>
-        <div class="input-btns">
-          <button class="round-btn" id="mic-btn" title="Hold to speak">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-          </button>
-          <button class="round-btn" id="send-btn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
+    <!-- Chat -->
+    <div class="panel active" id="panel-chat">
+      <div id="chat-messages"></div>
+      <div class="input-wrap">
+        <div class="input-box">
+          <textarea id="msg-input" placeholder="Message…" rows="1"></textarea>
+          <div class="input-actions">
+            <button class="round-btn" id="mic-btn" title="Voice input" onclick="toggleMic()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <button class="round-btn" id="send-btn" onclick="sendMsg()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="voice-hint" id="voice-hint">
+          <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#e55353"/></svg>
+          Listening… speak now
         </div>
       </div>
-      <div class="voice-bar" id="voice-bar">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--danger)" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
-        Listening… speak now
+    </div>
+
+    <!-- Stats -->
+    <div class="panel" id="panel-stats">
+      <div class="dash-scroll">
+        <div class="page-head">
+          <div class="page-title">Trading Stats</div>
+          <button class="btn" onclick="openModal('trade-modal')">+ Log Trade</button>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-val" id="k-trades">—</div><div class="kpi-label">Trades</div></div>
+          <div class="kpi"><div class="kpi-val" id="k-wr">—</div><div class="kpi-label">Win Rate</div></div>
+          <div class="kpi"><div class="kpi-val" id="k-pnl">—</div><div class="kpi-label">Total P&amp;L</div></div>
+          <div class="kpi"><div class="kpi-val" id="k-streak">—</div><div class="kpi-label">Streak</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">Cumulative P&amp;L</div>
+          <div class="chart-wrap"><canvas id="pnl-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-head">Win / Loss Split</div>
+          <div class="chart-wrap" style="height:160px"><canvas id="wl-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-head">Trade Journal</div>
+          <div id="journal-list"></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Stats -->
-  <div id="panel-stats" class="panel">
-    <div class="panel-scroll">
-      <div class="page-header">
-        <div class="page-title">Trading Stats</div>
-        <button class="btn" onclick="openModal('trade-modal')">+ Log Trade</button>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-box"><div class="stat-val" id="s-trades">—</div><div class="stat-label">Total Trades</div></div>
-        <div class="stat-box"><div class="stat-val" id="s-wr">—</div><div class="stat-label">Win Rate</div></div>
-        <div class="stat-box"><div class="stat-val" id="s-pnl">—</div><div class="stat-label">Total P&amp;L</div></div>
-        <div class="stat-box"><div class="stat-val" id="s-streak">—</div><div class="stat-label">Win Streak</div></div>
-      </div>
-      <div class="card">
-        <div class="card-label">Recent Trades</div>
-        <div id="journal-list"></div>
+    <!-- Tasks -->
+    <div class="panel" id="panel-tasks">
+      <div class="dash-scroll">
+        <div class="page-head">
+          <div class="page-title">Tasks</div>
+          <button class="btn" onclick="openModal('task-modal')">+ Add</button>
+        </div>
+        <div class="card"><div id="task-list"></div></div>
       </div>
     </div>
-  </div>
 
-  <!-- Tasks -->
-  <div id="panel-tasks" class="panel">
-    <div class="panel-scroll">
-      <div class="page-header">
-        <div class="page-title">Tasks</div>
-        <button class="btn" onclick="openModal('task-modal')">+ Add Task</button>
-      </div>
-      <div class="card">
-        <div id="task-list"></div>
+    <!-- Rules -->
+    <div class="panel" id="panel-rules">
+      <div class="dash-scroll">
+        <div class="page-head">
+          <div class="page-title">Trading Rules</div>
+          <button class="btn" onclick="openRulesModal()">Edit</button>
+        </div>
+        <div class="card"><div id="rules-list"></div></div>
       </div>
     </div>
-  </div>
 
-  <!-- Rules -->
-  <div id="panel-rules" class="panel">
-    <div class="panel-scroll">
-      <div class="page-header">
-        <div class="page-title">Trading Rules</div>
-        <button class="btn" onclick="openRulesModal()">Edit</button>
-      </div>
-      <div class="card">
-        <div id="rules-list"></div>
-      </div>
-    </div>
   </div>
-
-</main>
+</div>
 
 <!-- Trade Modal -->
 <div class="overlay" id="trade-modal">
   <div class="modal">
     <h2>Log a Trade</h2>
     <div class="field-row">
-      <div class="field"><label>Symbol</label><input id="t-sym" placeholder="EURUSD" /></div>
-      <div class="field"><label>Direction</label>
-        <select id="t-dir"><option value="long">Long</option><option value="short">Short</option></select>
-      </div>
+      <div class="field"><label>Symbol</label><input id="t-sym" placeholder="EURUSD"/></div>
+      <div class="field"><label>Direction</label><select id="t-dir"><option value="long">Long</option><option value="short">Short</option></select></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Entry</label><input id="t-entry" type="number" step="any" placeholder="1.0850" /></div>
-      <div class="field"><label>Exit</label><input id="t-exit" type="number" step="any" placeholder="1.0900" /></div>
+      <div class="field"><label>Entry</label><input id="t-entry" type="number" step="any" placeholder="1.0850"/></div>
+      <div class="field"><label>Exit</label><input id="t-exit" type="number" step="any" placeholder="1.0900"/></div>
     </div>
-    <div class="field"><label>Size</label><input id="t-size" type="number" step="any" placeholder="1.0" /></div>
+    <div class="field"><label>Size</label><input id="t-size" type="number" step="any" placeholder="1.0"/></div>
     <div class="field"><label>Notes</label><textarea id="t-notes" rows="2" placeholder="What happened?"></textarea></div>
-    <div class="field"><label>Followed your rules?</label>
-      <select id="t-rules"><option value="yes">Yes ✓</option><option value="no">No ✗</option></select>
-    </div>
-    <div class="modal-actions">
+    <div class="field"><label>Followed rules?</label><select id="t-rules"><option value="yes">Yes ✓</option><option value="no">No ✗</option></select></div>
+    <div class="modal-foot">
       <button class="btn ghost" onclick="closeModal('trade-modal')">Cancel</button>
       <button class="btn" onclick="submitTrade()">Log Trade</button>
     </div>
@@ -528,13 +605,11 @@ main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 <div class="overlay" id="task-modal">
   <div class="modal">
     <h2>Add Task</h2>
-    <div class="field"><label>Task</label><input id="tk-title" placeholder="What needs to get done?" /></div>
-    <div class="field"><label>Priority</label>
-      <select id="tk-pri"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
-    </div>
-    <div class="modal-actions">
+    <div class="field"><label>Task</label><input id="tk-title" placeholder="What needs doing?"/></div>
+    <div class="field"><label>Priority</label><select id="tk-pri"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select></div>
+    <div class="modal-foot">
       <button class="btn ghost" onclick="closeModal('task-modal')">Cancel</button>
-      <button class="btn" onclick="submitTask()">Add Task</button>
+      <button class="btn" onclick="submitTask()">Add</button>
     </div>
   </div>
 </div>
@@ -546,7 +621,7 @@ main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
     <div class="field"><label>One rule per line</label>
       <textarea id="rules-ta" rows="7" placeholder="Only trade with the trend&#10;Max 2% risk per trade&#10;No revenge trading"></textarea>
     </div>
-    <div class="modal-actions">
+    <div class="modal-foot">
       <button class="btn ghost" onclick="closeModal('rules-modal')">Cancel</button>
       <button class="btn" onclick="submitRules()">Save</button>
     </div>
@@ -554,211 +629,300 @@ main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 </div>
 
 <script>
-// ── Helpers ──
 const $ = id => document.getElementById(id);
 const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-const stripRich = s => s.replace(/\[\/?\w[\w\s]*\]/g, '');
+const strip = s => s.replace(/\[\/?\w[\w\s]*\]/g,'');
+
+// ── State ──
+let currentAgent = null;
+let agentList = [];
+let pnlChart = null, wlChart = null;
 
 // ── Theme ──
-const html = document.documentElement;
 let theme = localStorage.getItem('ace-theme') || 'dark';
-html.setAttribute('data-theme', theme);
+applyTheme(theme);
 
-$('theme-btn').addEventListener('click', () => {
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  $('theme-pill').classList.toggle('on', t === 'dark');
+}
+
+function toggleTheme() {
   theme = theme === 'dark' ? 'light' : 'dark';
-  html.setAttribute('data-theme', theme);
   localStorage.setItem('ace-theme', theme);
-});
+  applyTheme(theme);
+  if (pnlChart) { pnlChart.destroy(); pnlChart = null; }
+  if (wlChart) { wlChart.destroy(); wlChart = null; }
+  if ($('panel-stats').classList.contains('active')) loadStats();
+}
 
-// ── Voice (speech synthesis) ──
-let speakEnabled = localStorage.getItem('ace-speak') === '1';
-const pill = $('speak-toggle-pill');
-if (speakEnabled) pill.classList.add('on');
+// ── Voice ──
+let speakOn = localStorage.getItem('ace-speak') === '1';
+$('speak-pill').classList.toggle('on', speakOn);
 
-pill.parentElement.addEventListener('click', () => {
-  speakEnabled = !speakEnabled;
-  pill.classList.toggle('on', speakEnabled);
-  localStorage.setItem('ace-speak', speakEnabled ? '1' : '0');
-});
+function toggleSpeak() {
+  speakOn = !speakOn;
+  localStorage.setItem('ace-speak', speakOn ? '1' : '0');
+  $('speak-pill').classList.toggle('on', speakOn);
+}
 
 function speak(text) {
-  if (!speakEnabled || !window.speechSynthesis) return;
+  if (!speakOn || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  // prefer a natural English voice (Microsoft/Google)
+  const u = new SpeechSynthesisUtterance(text);
   const voices = window.speechSynthesis.getVoices();
-  const preferred = voices.find(v => v.name.includes('Microsoft') && v.lang.startsWith('en'))
-    || voices.find(v => v.lang.startsWith('en-'));
-  if (preferred) utt.voice = preferred;
-  utt.rate = 1.05; utt.pitch = 1.0;
-  window.speechSynthesis.speak(utt);
+  const v = voices.find(v => v.name.includes('Microsoft') && v.lang.startsWith('en'))
+         || voices.find(v => v.lang.startsWith('en-'));
+  if (v) u.voice = v;
+  u.rate = 1.05;
+  window.speechSynthesis.speak(u);
 }
 
-// load voices (async on some browsers)
-if (window.speechSynthesis) {
-  window.speechSynthesis.onvoiceschanged = () => {};
-  window.speechSynthesis.getVoices();
-}
+if (window.speechSynthesis) window.speechSynthesis.getVoices();
 
-// ── Speech recognition ──
-const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recog = null;
-let listening = false;
+// ── Speech Recognition ──
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog = null, micOn = false;
 
-if (SpeechRec) {
-  recog = new SpeechRec();
-  recog.continuous = false;
-  recog.interimResults = true;
-  recog.lang = 'en-US';
-
+if (SR) {
+  recog = new SR();
+  recog.continuous = false; recog.interimResults = true; recog.lang = 'en-US';
   recog.onresult = e => {
-    const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
-    $('msg-input').value = transcript;
-    autoResize($('msg-input'));
-    if (e.results[0].isFinal) stopListening();
+    const t = Array.from(e.results).map(r => r[0].transcript).join('');
+    $('msg-input').value = t; resize($('msg-input'));
+    if (e.results[0].isFinal) stopMic();
   };
-
-  recog.onend = () => stopListening();
-  recog.onerror = () => stopListening();
+  recog.onend = stopMic;
+  recog.onerror = stopMic;
 }
 
-function startListening() {
-  if (!recog) { alert('Speech recognition not supported in this browser. Try Chrome or Edge.'); return; }
-  listening = true;
-  $('mic-btn').classList.add('listening');
-  $('voice-bar').classList.add('active');
+function toggleMic() { micOn ? stopMic() : startMic(); }
+function startMic() {
+  if (!recog) { alert('Speech recognition not supported. Try Chrome or Edge.'); return; }
+  micOn = true;
+  $('mic-btn').classList.add('on');
+  $('voice-hint').classList.add('on');
   recog.start();
 }
-
-function stopListening() {
-  listening = false;
-  $('mic-btn').classList.remove('listening');
-  $('voice-bar').classList.remove('active');
+function stopMic() {
+  micOn = false;
+  $('mic-btn').classList.remove('on');
+  $('voice-hint').classList.remove('on');
   try { recog.stop(); } catch(e) {}
 }
 
-$('mic-btn').addEventListener('click', () => {
-  if (listening) stopListening();
-  else startListening();
-});
+// ── Agents ──
+async function loadAgents() {
+  agentList = await fetch('/api/agents').then(r=>r.json());
+  const el = $('agent-list');
+  el.innerHTML = agentList.map(a => `
+    <button class="agent-btn" data-id="${a.id}" onclick="switchAgent('${a.id}')">
+      <div class="agent-dot" style="background:${a.color}"></div>
+      <span class="agent-emoji">${a.emoji}</span>
+      ${a.name}
+    </button>`).join('');
+  switchAgent('accountability');
+}
 
-// ── Tabs ──
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    const id = 'panel-' + btn.dataset.panel;
-    $(id).classList.add('active');
-    if (btn.dataset.panel === 'stats') loadStats();
-    if (btn.dataset.panel === 'tasks') loadTasks();
-    if (btn.dataset.panel === 'rules') loadRules();
-  });
-});
+function switchAgent(id) {
+  const agent = agentList.find(a => a.id === id);
+  if (!agent) return;
+  currentAgent = id;
+
+  document.querySelectorAll('.agent-btn').forEach(b => b.classList.toggle('active', b.dataset.id === id));
+
+  $('topbar-avatar').textContent = agent.emoji;
+  $('topbar-avatar').style.background = `linear-gradient(135deg, ${agent.color}cc, ${agent.color}66)`;
+  $('topbar-name').textContent = agent.name;
+  $('topbar-sub').textContent = agent.subtitle;
+
+  document.documentElement.style.setProperty('--agent-color', agent.color);
+
+  clearChat();
+  const greetings = {
+    accountability: `Hey! I'm Ace — your accountability partner. What are we working on today?`,
+    trading: `Hey, I'm Rex. Ready to review your trades or log a new one?`,
+    therapy: `Hi, I'm Sage. This is your space — what's on your mind?`,
+    general: `Hey! I'm Kai. What do you need?`
+  };
+  addMsg('bot', greetings[id] || `Hey! How can I help?`, agent.color, agent.emoji);
+
+  switchView('chat', document.querySelector('[data-view="chat"]'));
+}
+
+// ── Views ──
+function switchView(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  $(`panel-${name}`).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'stats') loadStats();
+  if (name === 'tasks') loadTasks();
+  if (name === 'rules') loadRules();
+}
 
 // ── Chat ──
 const msgsEl = $('chat-messages');
 
-function addMsg(role, text) {
+function clearChat() { msgsEl.innerHTML = ''; }
+
+function addMsg(role, text, color, emoji) {
   const div = document.createElement('div');
   div.className = `msg ${role}`;
+  const clean = strip(text);
   const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  const clean = stripRich(text);
-  const avatarLabel = role === 'ace' ? 'A' : 'Y';
 
-  let extra = '';
-  if (role === 'ace') {
-    extra = `<button class="speak-btn" onclick="speak(this.dataset.text)" data-text="${clean.replace(/"/g,'&quot;')}">🔊</button>`;
-  }
+  const agent = agentList.find(a => a.id === currentAgent);
+  const c = color || (agent ? agent.color : '#7c6ef5');
+  const em = emoji || (agent ? agent.emoji : 'A');
+
+  const speakBtn = role === 'bot'
+    ? `<button class="speak-btn" onclick="speak(this.dataset.t)" data-t="${clean.replace(/"/g,'&quot;')}">🔊</button>`
+    : '';
 
   div.innerHTML = `
-    <div class="msg-avatar">${avatarLabel}</div>
+    <div class="msg-av" style="${role==='bot' ? `background:linear-gradient(135deg,${c}cc,${c}55)` : ''}">${role==='bot' ? em : 'Y'}</div>
     <div class="msg-body">
-      <div class="msg-bubble">${esc(clean)}</div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span class="msg-time">${time}</span>${extra}
-      </div>
+      <div class="msg-bubble" style="${role==='user' ? `background:${c}` : ''}">${esc(clean)}</div>
+      <div class="msg-meta"><span class="msg-time">${time}</span>${speakBtn}</div>
     </div>`;
   msgsEl.appendChild(div);
   msgsEl.scrollTop = msgsEl.scrollHeight;
-  if (role === 'ace') speak(clean);
+  if (role === 'bot') speak(clean);
 }
 
 function showTyping() {
   const d = document.createElement('div');
-  d.className = 'msg ace'; d.id = 'typing';
-  d.innerHTML = `<div class="msg-avatar">A</div><div class="typing-bubble"><span></span><span></span><span></span></div>`;
-  msgsEl.appendChild(d);
-  msgsEl.scrollTop = msgsEl.scrollHeight;
+  d.className = 'msg bot'; d.id = 'typing-row';
+  d.innerHTML = `<div class="msg-av" style="background:var(--surface3)">…</div><div class="typing"><span></span><span></span><span></span></div>`;
+  msgsEl.appendChild(d); msgsEl.scrollTop = msgsEl.scrollHeight;
 }
-function hideTyping() { const t = $('typing'); if(t) t.remove(); }
+function hideTyping() { const t = $('typing-row'); if(t) t.remove(); }
 
-async function sendMessage() {
+async function sendMsg() {
   const inp = $('msg-input');
-  const text = inp.value.trim();
-  if (!text) return;
-  inp.value = ''; inp.style.height = 'auto';
+  const text = inp.value.trim(); if (!text) return;
+  inp.value = ''; resize(inp);
   addMsg('user', text);
   $('send-btn').disabled = true;
   showTyping();
   try {
     const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({message: text})
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({message: text, agent_id: currentAgent})
     });
     const data = await res.json();
     hideTyping();
-    if (data.type === 'trade_form') {
-      openModal('trade-modal');
-      addMsg('ace', 'Opening the trade log for you.');
-    } else {
-      addMsg('ace', data.text);
-    }
+    addMsg('bot', data.text);
   } catch(e) {
     hideTyping();
-    addMsg('ace', 'Connection error — try again.');
+    addMsg('bot', 'Connection error — try again.');
   }
   $('send-btn').disabled = false;
 }
 
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+function resize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,110)+'px'; }
+$('msg-input').addEventListener('input', () => resize($('msg-input')));
+$('msg-input').addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} });
+
+async function clearHistory() {
+  if (!confirm('Clear this agent\'s conversation history?')) return;
+  await fetch(`/api/agents/${currentAgent}/clear`, {method:'POST'});
+  clearChat();
+  const agent = agentList.find(a=>a.id===currentAgent);
+  addMsg('bot', "Memory cleared. Fresh start!", agent?.color, agent?.emoji);
 }
 
-$('msg-input').addEventListener('input', () => autoResize($('msg-input')));
-$('msg-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-});
-$('send-btn').addEventListener('click', sendMessage);
+// ── Stats + Charts ──
+function chartDefaults() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  return {
+    gridColor: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)',
+    textColor: dark ? '#8888a0' : '#60607a',
+    tooltipBg: dark ? '#18181f' : '#ffffff',
+    tooltipText: dark ? '#e8e8f0' : '#1a1a2e',
+  };
+}
 
-// welcome
-setTimeout(() => addMsg('ace', "Hey! I'm Ace — your accountability partner. What's on your mind?"), 300);
-
-// ── Stats ──
 async function loadStats() {
   const [stats, journal] = await Promise.all([
     fetch('/api/stats').then(r=>r.json()),
     fetch('/api/journal').then(r=>r.json())
   ]);
-  $('s-trades').textContent = stats.total_trades;
-  $('s-wr').textContent = stats.win_rate + '%';
-  const pEl = $('s-pnl');
-  pEl.textContent = (stats.total_pnl >= 0 ? '+' : '') + '$' + Math.abs(stats.total_pnl).toFixed(2);
-  pEl.className = 'stat-val' + (stats.total_pnl < 0 ? ' neg' : '');
-  $('s-streak').textContent = stats.streak + (stats.streak >= 3 ? ' 🔥' : '');
+
+  $('k-trades').textContent = stats.total_trades;
+  $('k-wr').textContent = stats.win_rate + '%';
+  const pEl = $('k-pnl');
+  const pnl = stats.total_pnl;
+  pEl.textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
+  pEl.className = 'kpi-val ' + (pnl < 0 ? 'neg' : 'pos');
+  $('k-streak').textContent = stats.streak + (stats.streak >= 3 ? ' 🔥' : '');
+
+  renderCharts(journal);
 
   const jEl = $('journal-list');
   if (!journal.length) { jEl.innerHTML = '<div class="empty">No trades yet.</div>'; return; }
   jEl.innerHTML = [...journal].reverse().map(t => `
     <div class="trade-row">
-      <div><div class="trade-sym">${t.symbol}</div><div class="trade-sub">${t.direction.toUpperCase()} · ${t.date.slice(0,10)}</div></div>
-      <div class="trade-right">
-        <span class="badge ${t.followed_rules?'ok':'broke'}">${t.followed_rules?'Rules ✓':'Rules ✗'}</span>
+      <div><div class="t-sym">${t.symbol}</div><div class="t-sub">${t.direction.toUpperCase()} · ${t.date.slice(0,10)}</div></div>
+      <div class="t-right">
+        <span class="badge ${t.followed_rules?'ok':'broke'}">${t.followed_rules?'✓ Rules':'✗ Rules'}</span>
         <span class="pnl ${t.pnl>=0?'pos':'neg'}">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</span>
       </div>
     </div>`).join('');
+}
+
+function renderCharts(journal) {
+  const cd = chartDefaults();
+  if (pnlChart) pnlChart.destroy();
+  if (wlChart) wlChart.destroy();
+
+  // cumulative P&L line chart
+  let cum = 0;
+  const labels = journal.map((t,i) => `#${i+1}`);
+  const cumPnl = journal.map(t => { cum += t.pnl; return +cum.toFixed(2); });
+  const lineColor = cum >= 0 ? '#4ec9a0' : '#e55353';
+
+  pnlChart = new Chart($('pnl-chart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: cumPnl, borderColor: lineColor,
+        backgroundColor: lineColor + '18',
+        fill: true, tension: 0.35, pointRadius: 3,
+        pointBackgroundColor: lineColor, borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { backgroundColor: cd.tooltipBg, titleColor: cd.textColor, bodyColor: cd.tooltipText, borderColor: cd.gridColor, borderWidth: 1 }
+      },
+      scales: {
+        x: { grid: { color: cd.gridColor }, ticks: { color: cd.textColor, font: { size: 11 } } },
+        y: { grid: { color: cd.gridColor }, ticks: { color: cd.textColor, font: { size: 11 }, callback: v => '$'+v } }
+      }
+    }
+  });
+
+  // win/loss donut
+  const wins = journal.filter(t => t.pnl > 0).length;
+  const losses = journal.length - wins;
+  wlChart = new Chart($('wl-chart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Wins', 'Losses'],
+      datasets: [{ data: [wins, losses], backgroundColor: ['#4ec9a0', '#e55353'], borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: cd.textColor, padding: 16, font: { size: 12 } } },
+        tooltip: { backgroundColor: cd.tooltipBg, bodyColor: cd.tooltipText, borderColor: cd.gridColor, borderWidth: 1 }
+      }
+    }
+  });
 }
 
 // ── Tasks ──
@@ -768,25 +932,30 @@ async function loadTasks() {
   if (!tasks.length) { el.innerHTML = '<div class="empty">No pending tasks.</div>'; return; }
   el.innerHTML = tasks.map(t => `
     <div class="task-row" id="tk-${t.id}">
-      <div class="check-circle" onclick="doneTask(${t.id})"></div>
-      <div class="task-text">${esc(t.title)}</div>
+      <div class="chk" onclick="doneTask(${t.id})"></div>
+      <div class="task-txt">${esc(t.title)}</div>
       <span class="pri ${t.priority}">${t.priority}</span>
     </div>`).join('');
 }
 
 async function doneTask(id) {
-  await fetch(`/api/tasks/${id}/complete`, {method:'POST'});
+  await fetch(`/api/tasks/${id}/complete`,{method:'POST'});
   const el = $(`tk-${id}`);
-  if (el) { el.style.opacity='0.3'; setTimeout(()=>el.remove(),400); }
+  if(el){el.style.opacity='0.3';setTimeout(()=>el.remove(),350);}
 }
 
 // ── Rules ──
 async function loadRules() {
   const rules = await fetch('/api/rules').then(r=>r.json());
   const el = $('rules-list');
-  if (!rules.length) { el.innerHTML = '<div class="empty">No rules set yet.</div>'; return; }
+  if (!rules.length) { el.innerHTML = '<div class="empty">No rules set.</div>'; return; }
+  const agent = agentList.find(a=>a.id==='trading');
+  const c = agent?.color || '#f5a623';
   el.innerHTML = rules.map((r,i) => `
-    <div class="rule-row"><div class="rule-num">${i+1}</div><div>${esc(r)}</div></div>`).join('');
+    <div class="rule-row">
+      <div class="rule-n" style="background:${c}">${i+1}</div>
+      <div>${esc(r)}</div>
+    </div>`).join('');
 }
 
 // ── Modals ──
@@ -808,22 +977,29 @@ async function submitTrade() {
   const entry = parseFloat($('t-entry').value);
   const exit  = parseFloat($('t-exit').value);
   const size  = parseFloat($('t-size').value);
-  if (!sym || isNaN(entry) || isNaN(exit) || isNaN(size)) { alert('Fill in all fields.'); return; }
+  if (!sym || isNaN(entry) || isNaN(exit) || isNaN(size)) { alert('Fill all fields.'); return; }
   const trade = await fetch('/api/trade', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({symbol:sym, direction:$('t-dir').value, entry, exit_price:exit, size,
       notes:$('t-notes').value, followed_rules:$('t-rules').value==='yes'})
   }).then(r=>r.json());
   closeModal('trade-modal');
+  [$('t-sym'),$('t-entry'),$('t-exit'),$('t-size'),$('t-notes')].forEach(e=>e.value='');
   const pnl = trade.pnl >= 0 ? `+$${trade.pnl.toFixed(2)}` : `-$${Math.abs(trade.pnl).toFixed(2)}`;
-  addMsg('ace', `Trade logged — ${trade.symbol} ${trade.direction.toUpperCase()} ${pnl}${!trade.followed_rules ? '\n\nYou broke your rules. We\'re talking about this.' : '. Solid.'}`);
-  // switch to chat
-  document.querySelector('[data-panel="chat"]').click();
+  // switch to trading agent and notify
+  switchAgent('trading');
+  setTimeout(() => {
+    addMsg('user', `Just logged a trade: ${trade.symbol} ${trade.direction.toUpperCase()} ${pnl}. Rules followed: ${trade.followed_rules ? 'yes' : 'NO'}.`);
+    $('send-btn').disabled = true;
+    showTyping();
+    fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({message: `I just logged a trade: ${trade.symbol} ${trade.direction.toUpperCase()}, P&L ${pnl}, rules followed: ${trade.followed_rules ? 'yes' : 'no'}. Notes: ${trade.notes || 'none'}`, agent_id:'trading'})
+    }).then(r=>r.json()).then(d=>{hideTyping();addMsg('bot',d.text);$('send-btn').disabled=false;});
+  }, 400);
 }
 
 async function submitTask() {
-  const title = $('tk-title').value.trim();
-  if (!title) return;
+  const title = $('tk-title').value.trim(); if (!title) return;
   await fetch('/api/tasks', {method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({title, priority:$('tk-pri').value})});
   $('tk-title').value = '';
@@ -838,6 +1014,9 @@ async function submitRules() {
   closeModal('rules-modal');
   loadRules();
 }
+
+// ── Boot ──
+loadAgents();
 </script>
 </body>
 </html>

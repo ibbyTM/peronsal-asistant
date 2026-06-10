@@ -1,10 +1,9 @@
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import bot
+import agents
 import memory
 
 load_dotenv()
@@ -13,6 +12,7 @@ app = FastAPI()
 
 class ChatRequest(BaseModel):
     message: str
+    agent_id: str = "accountability"
 
 class TradeRequest(BaseModel):
     symbol: str
@@ -36,18 +36,22 @@ def health():
     return {"status": "ok"}
 
 
+@app.get("/api/agents")
+def get_agents():
+    return [
+        {"id": k, "name": v["name"], "subtitle": v["subtitle"],
+         "color": v["color"], "emoji": v["emoji"]}
+        for k, v in agents.AGENTS.items()
+    ]
+
+
 @app.post("/api/chat")
 def chat(req: ChatRequest):
     msg = req.message.strip()
     if not msg:
         raise HTTPException(400, "Empty message")
-    if msg.startswith("/"):
-        result = bot.handle_command(msg)
-        if result == "__TRADE_LOG__":
-            return {"type": "trade_form"}
-        return {"type": "command", "text": result}
-    reply = bot.chat(msg)
-    return {"type": "message", "text": reply}
+    reply = agents.chat(req.agent_id, msg)
+    return {"text": reply}
 
 
 @app.get("/api/tasks")
@@ -57,8 +61,7 @@ def get_tasks():
 
 @app.post("/api/tasks")
 def add_task(req: TaskRequest):
-    task = memory.add_task(req.title, req.priority)
-    return task
+    return memory.add_task(req.title, req.priority)
 
 
 @app.post("/api/tasks/{task_id}/complete")
@@ -70,16 +73,15 @@ def complete_task(task_id: int):
 
 @app.get("/api/journal")
 def get_journal():
-    return memory.get_journal(20)
+    return memory.get_journal(30)
 
 
 @app.post("/api/trade")
 def log_trade(req: TradeRequest):
-    trade = memory.log_trade(
+    return memory.log_trade(
         req.symbol, req.direction, req.entry,
         req.exit_price, req.size, req.notes, req.followed_rules
     )
-    return trade
 
 
 @app.get("/api/stats")
@@ -95,6 +97,12 @@ def get_rules():
 @app.post("/api/rules")
 def set_rules(req: RulesRequest):
     memory.set_trading_rules(req.rules)
+    return {"ok": True}
+
+
+@app.post("/api/agents/{agent_id}/clear")
+def clear_history(agent_id: str):
+    memory.clear_agent_history(agent_id)
     return {"ok": True}
 
 
