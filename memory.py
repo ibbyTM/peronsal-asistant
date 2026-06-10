@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from typing import Any
 
-DATA_FILE = "data.json"
+DATA_FILE = os.getenv("DATA_FILE", "data.json")
 
 DEFAULT_DATA = {
     "tasks": [],
