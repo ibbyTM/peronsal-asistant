@@ -873,15 +873,25 @@ function switchAgent(id) {
   document.documentElement.style.setProperty('--agent-color', agent.color);
 
   clearChat();
-  const greetings = {
-    accountability: `Hey! I'm Ace — your accountability partner. What are we working on today?`,
-    trading: `Hey, I'm Rex. Ready to review your trades or log a new one?`,
-    therapy: `Hi, I'm Sage. This is your space — what's on your mind?`,
-    general: `Hey! I'm Kai. What do you need?`
-  };
-  addMsg('bot', greetings[id] || `Hey! How can I help?`, agent.color, agent.emoji);
   closeAgentSheet();
   switchView('chat', document.querySelector('[data-view="chat"]'));
+
+  // load saved history
+  fetch(`/api/agents/${id}/history`).then(r => r.json()).then(history => {
+    if (history && history.length > 0) {
+      history.forEach(msg => {
+        addMsg(msg.role === 'user' ? 'user' : 'bot', msg.content, agent.color, agent.emoji, true);
+      });
+    } else {
+      const greetings = {
+        accountability: `Hey! I'm Ace — your accountability partner. What are we working on today?`,
+        trading: `Hey, I'm Rex. Ready to review your trades or log a new one?`,
+        therapy: `Hi, I'm Sage. This is your space — what's on your mind?`,
+        general: `Hey! I'm Kai. What do you need?`
+      };
+      addMsg('bot', greetings[id] || `Hey! How can I help?`, agent.color, agent.emoji);
+    }
+  });
 }
 
 function openAgentSheet() {
@@ -917,7 +927,7 @@ const msgsEl = $('chat-messages');
 
 function clearChat() { msgsEl.innerHTML = ''; }
 
-function addMsg(role, text, color, emoji) {
+function addMsg(role, text, color, emoji, silent = false) {
   const div = document.createElement('div');
   div.className = `msg ${role}`;
   const clean = strip(text);
@@ -939,7 +949,7 @@ function addMsg(role, text, color, emoji) {
     </div>`;
   msgsEl.appendChild(div);
   msgsEl.scrollTop = msgsEl.scrollHeight;
-  if (role === 'bot') speak(clean);
+  if (role === 'bot' && !silent) speak(clean);
 }
 
 function showTyping() {

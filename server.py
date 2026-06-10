@@ -100,7 +100,11 @@ def set_rules(req: RulesRequest):
     return {"ok": True}
 
 
-@app.post("/api/agents/{agent_id}/clear")
+@app.get("/api/agents/{agent_id}/history")
+def get_history(agent_id: str):
+    return memory.get_agent_history(agent_id)
+
+
 def clear_history(agent_id: str):
     memory.clear_agent_history(agent_id)
     return {"ok": True}
